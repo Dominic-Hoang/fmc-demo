@@ -1,0 +1,33 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./dev.dockerfile
+    ports:
+      - 3000:3000
+
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app/
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./package.json
+
+  db:
+    image: postgres:16.3
+    restart: always
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    expose:
+      - 5432
+
+    environment:
+      POSTGRES_PASSWORD: dummysecret
+      POSTGRES_DB: fmcdemo
+
+volumes:
+  postgres-data:
