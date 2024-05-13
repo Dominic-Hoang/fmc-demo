@@ -16,6 +16,13 @@ services:
         - action: rebuild
           path: ./package.json
 
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_PASSWORD: dummysecret
+      DB_USER: postgres
+      DB_NAME: fmcdemo
+
   db:
     image: postgres:16.3
     restart: always
