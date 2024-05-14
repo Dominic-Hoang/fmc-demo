@@ -1,23 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 import { OAuth2Client } from 'google-auth-library';
 import { DataSource } from 'typeorm';
 
-describe('AppController (e2e)', () => {
+describe('Authentication test', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
-  });
 
-  beforeEach(async () => {
     const datasource = app.get<DataSource>(DataSource);
     const entities = datasource.entityMetadatas;
 
@@ -27,6 +25,10 @@ describe('AppController (e2e)', () => {
         `TRUNCATE TABLE "${entity.tableName}" RESTART IDENTITY CASCADE;`,
       );
     }
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   it('Google return correct redirect response', async () => {
@@ -73,7 +75,7 @@ describe('AppController (e2e)', () => {
     const signUpResponse = await request(app.getHttpServer())
       .post('/auth/basic/signUp')
       .send({
-        name: 'domhoang',
+        name: 'domhoang1',
         password: 'somedummysecret',
         displayName: 'Dominic Hoang',
       });
@@ -83,7 +85,7 @@ describe('AppController (e2e)', () => {
     const signInResponse = await request(app.getHttpServer())
       .post('/auth/basic/signIn')
       .send({
-        name: 'domhoang',
+        name: 'domhoang1',
         password: 'somedummysecret',
       });
     expect(signInResponse.statusCode).toEqual(HttpStatus.OK);
@@ -96,9 +98,9 @@ describe('AppController (e2e)', () => {
     const firstSignUpResponse = await request(app.getHttpServer())
       .post('/auth/basic/signUp')
       .send({
-        name: 'domhoang',
-        password: 'somedummysecret1',
-        displayName: 'Dominic Hoang 1',
+        name: 'domhoang2',
+        password: 'somedummysecret2',
+        displayName: 'Dominic Hoang 2',
       });
 
     expect(firstSignUpResponse.statusCode).toEqual(HttpStatus.CREATED);
@@ -106,7 +108,7 @@ describe('AppController (e2e)', () => {
     const secondSignUpResponse = await request(app.getHttpServer())
       .post('/auth/basic/signUp')
       .send({
-        name: 'domhoang',
+        name: 'domhoang2',
         password: 'somedummysecret2',
         displayName: 'Dominic Hoang 2',
       });
