@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { AlarmEntity } from '../../alarms/entities/alarm.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'user' })
 export class UserEntity {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: string;
@@ -13,4 +14,7 @@ export class UserEntity {
 
   @Column({ type: 'varchar', length: 255 })
   displayName: string;
+
+  @OneToMany(() => AlarmEntity, (alarm) => alarm.user)
+  alarms: AlarmEntity[];
 }
