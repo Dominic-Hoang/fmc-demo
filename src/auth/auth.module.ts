@@ -4,6 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   providers: [
@@ -35,6 +36,7 @@ import { AuthController } from './auth.controller';
       inject: [ConfigService],
       imports: [ConfigModule],
     }),
+    UsersModule,
   ],
   controllers: [AuthController],
 })

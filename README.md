@@ -24,14 +24,7 @@ This app utilizes Docker Compose's watch feature, leveraging Docker bind mount f
 ## Test
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose exec api npm run test:e2e
 ```
 
 ## Stay in touch
