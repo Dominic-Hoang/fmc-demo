@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { OAuth2Client } from 'google-auth-library';
-import { UsersService } from '../users/users.service';
 import { UserCreateDto, UserSignInDto } from './auth.dto';
 import {
   AuthService,
@@ -35,7 +34,6 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private googleOauth2Client: OAuth2Client,
-    private usersService: UsersService,
   ) {}
 
   @Get('oauth2/google/url')

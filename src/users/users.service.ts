@@ -14,7 +14,7 @@ export class UsersService {
     return await this.userRepository.save(entity);
   }
 
-  async findOneById(id: number) {
+  async findOneById(id: string) {
     return await this.userRepository.findOneBy({ id });
   }
 
