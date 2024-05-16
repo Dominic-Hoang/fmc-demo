@@ -17,11 +17,15 @@ export class SubscriptionEntity {
   @PrimaryColumn({ type: 'bigint' })
   recipientId: string;
 
-  @ManyToOne(() => AlarmEntity, (alarm) => alarm.subscriptions)
+  @ManyToOne(() => AlarmEntity, (alarm) => alarm.subscriptions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'alarmId' })
   alarm: AlarmEntity;
 
-  @ManyToOne(() => RecipientEntity, (recipient) => recipient.subscriptions)
+  @ManyToOne(() => RecipientEntity, (recipient) => recipient.subscriptions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'recipientId' })
   recipient: RecipientEntity;
 
