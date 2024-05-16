@@ -25,6 +25,6 @@ export class AlarmEntity {
   @OneToMany(() => SubscriptionEntity, (subscription) => subscription.alarm)
   subscriptions: SubscriptionEntity[];
 
-  @ManyToOne(() => UserEntity, (user) => user.alarms)
+  @ManyToOne(() => UserEntity, (user) => user.alarms, { onDelete: 'CASCADE' })
   user: UserEntity;
 }
