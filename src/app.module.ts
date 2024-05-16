@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
+import { AlarmsModule } from './alarms/alarms.module';
 
 @Module({
   imports: [
@@ -35,9 +36,10 @@ import { UsersModule } from './users/users.module';
         password: configService.getOrThrow<string>('DB_PASSWORD'),
         synchronize: true,
         autoLoadEntities: true,
-        logging: true,
+        logging: false,
       }),
     }),
+    AlarmsModule,
   ],
 })
 export class AppModule {}
