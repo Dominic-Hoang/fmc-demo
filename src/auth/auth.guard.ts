@@ -8,7 +8,6 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { UserEntity } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -42,7 +41,7 @@ export class AuthGuard implements CanActivate {
 }
 
 export const UserId = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): UserEntity => {
+  (_: unknown, ctx: ExecutionContext): string => {
     const request = ctx.switchToHttp().getRequest();
     if (!request.userId) throw new UnauthorizedException();
     return request.userId;
