@@ -75,6 +75,31 @@ describe('Alarm API', () => {
     otherUserToken = signInResponse2.body['access_token'] ?? fail();
   });
 
+  it('Anonymous user have no right', async () => {
+    const listAlarmResponse = await request(app.getHttpServer()).get(`/alarms`);
+    expect(listAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+    const createAlarmResponse = await request(app.getHttpServer()).post(
+      `/alarms`,
+    );
+    expect(createAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+    const getAlarmResponse = await request(app.getHttpServer()).get(
+      `/alarms/1`,
+    );
+    expect(getAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+    const updateAlarmResponse = await request(app.getHttpServer()).patch(
+      `/alarms/1`,
+    );
+    expect(updateAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+    const deleteAlarmResponse = await request(app.getHttpServer()).delete(
+      `/alarms/1`,
+    );
+    expect(deleteAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+  });
+
   describe('User logged in', () => {
     let dummyAlarm1Id: string;
     const dummyAlarm1 = {
@@ -186,6 +211,119 @@ describe('Alarm API', () => {
 
       expect(listAlarmsResponse.statusCode).toEqual(HttpStatus.OK);
       expect(listAlarmsResponse.body.length).toEqual(0);
+    });
+
+    describe('Manage recipient', () => {
+      let recipient1Id: string;
+
+      const recipient1 = {
+        emailAddress: 'egzod@gmail.com',
+      };
+      const recipient2 = {
+        emailAddress: 'red.bull@outlook.com',
+      };
+
+      beforeEach(async () => {
+        const createRecipient1Response = await request(app.getHttpServer())
+          .post(`/alarms/${dummyAlarm1Id}/recipients`)
+          .send(recipient1)
+          .set('Authorization', `Bearer ${userToken}`);
+        expect(createRecipient1Response.statusCode).toEqual(HttpStatus.CREATED);
+
+        recipient1Id = createRecipient1Response.body['id'];
+
+        const createRecipient2Response = await request(app.getHttpServer())
+          .post(`/alarms/${dummyAlarm1Id}/recipients`)
+          .send(recipient2)
+          .set('Authorization', `Bearer ${userToken}`);
+        expect(createRecipient2Response.statusCode).toEqual(HttpStatus.CREATED);
+      });
+
+      it('Users list recipients successfully', async () => {
+        const listRecipientResponse = await request(app.getHttpServer())
+          .get(`/alarms/${dummyAlarm1Id}/recipients`)
+          .set('Authorization', `Bearer ${userToken}`);
+        expect(listRecipientResponse.statusCode).toEqual(HttpStatus.OK);
+        expect(listRecipientResponse.body.length).toEqual(2);
+        listRecipientResponse.body.forEach((recipient: any) => {
+          expect(recipient['id']).toBeDefined();
+        });
+        const listRecipients = listRecipientResponse.body.map(
+          (recipient: any) => recipient['emailAddress'],
+        );
+        expect(listRecipients.sort()).toEqual(
+          [recipient1.emailAddress, recipient2.emailAddress].sort(),
+        );
+      });
+
+      it('Add same email twice wont take effect', async () => {
+        const createRecipientResponse = await request(app.getHttpServer())
+          .post(`/alarms/${dummyAlarm1Id}/recipients`)
+          .send(recipient1)
+          .set('Authorization', `Bearer ${userToken}`);
+        expect(createRecipientResponse.statusCode).toEqual(HttpStatus.CREATED);
+
+        const listRecipientResponse = await request(app.getHttpServer())
+          .get(`/alarms/${dummyAlarm1Id}/recipients`)
+          .set('Authorization', `Bearer ${userToken}`);
+        expect(listRecipientResponse.statusCode).toEqual(HttpStatus.OK);
+        expect(listRecipientResponse.body.length).toEqual(2);
+        listRecipientResponse.body.forEach((recipient: any) => {
+          expect(recipient['id']).toBeDefined();
+        });
+        const listRecipients = listRecipientResponse.body.map(
+          (recipient: any) => recipient['emailAddress'],
+        );
+        expect(listRecipients.sort()).toEqual(
+          [recipient1.emailAddress, recipient2.emailAddress].sort(),
+        );
+      });
+
+      it('Other users have no idea current user recipients', async () => {
+        const listRecipientResponse = await request(app.getHttpServer())
+          .get(`/alarms/${dummyAlarm1Id}/recipients`)
+          .set('Authorization', `Bearer ${otherUserToken}`);
+        expect(listRecipientResponse.statusCode).toEqual(HttpStatus.NOT_FOUND);
+      });
+      describe('Recipient interaction ***implementation details***', () => {
+        let deactivateCode: string;
+
+        beforeEach(async () => {
+          const sub = await datasource
+            .getRepository(SubscriptionEntity)
+            .findOneBy({ recipientId: recipient1Id });
+          deactivateCode = sub?.deactivateCode ?? '';
+        });
+
+        it('Recipient unsubscribe successfully', async () => {
+          const unsubscribeResponse = await request(app.getHttpServer())
+            .get(`/alarms/@unsubscribe`)
+            .query({ deactivateCode });
+          expect(unsubscribeResponse.statusCode).toEqual(HttpStatus.OK);
+
+          const listRecipientResponse = await request(app.getHttpServer())
+            .get(`/alarms/${dummyAlarm1Id}/recipients`)
+            .set('Authorization', `Bearer ${userToken}`);
+          expect(listRecipientResponse.body.length).toEqual(1);
+        });
+
+        it('Recipient resubscribe successfully', async () => {
+          const unsubscribeResponse = await request(app.getHttpServer())
+            .get(`/alarms/@unsubscribe`)
+            .query({ deactivateCode });
+          expect(unsubscribeResponse.statusCode).toEqual(HttpStatus.OK);
+
+          const resubscribeResponse = await request(app.getHttpServer())
+            .get(`/alarms/@resubscribe`)
+            .query({ deactivateCode });
+          expect(resubscribeResponse.statusCode).toEqual(HttpStatus.OK);
+
+          const listRecipientResponse = await request(app.getHttpServer())
+            .get(`/alarms/${dummyAlarm1Id}/recipients`)
+            .set('Authorization', `Bearer ${userToken}`);
+          expect(listRecipientResponse.body.length).toEqual(2);
+        });
+      });
     });
   });
 });
