@@ -1,5 +1,3 @@
-import { Subscription } from 'rxjs';
-import { UserEntity } from '../../users/entities/user.entity';
 import {
   Column,
   Entity,
@@ -7,6 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { UserEntity } from '../../users/entities/user.entity';
 import { SubscriptionEntity } from './subscription.entity';
 
 @Entity({ name: 'alarm' })
@@ -24,7 +23,7 @@ export class AlarmEntity {
   message: string;
 
   @OneToMany(() => SubscriptionEntity, (subscription) => subscription.alarm)
-  subscriptions: Subscription[];
+  subscriptions: SubscriptionEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.alarms)
   user: UserEntity;
