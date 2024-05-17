@@ -8,14 +8,19 @@ export class MailService {
 
   constructor(private configService: ConfigService) {
     this.transporter = createTransport({
-      host: this.configService.get<string>('SMTP_HOST'),
-      port: this.configService.get<number>('SMTP_PORT'),
-      secure: true,
+      host: this.configService.getOrThrow<string>('SMTP_HOST'),
+      port: this.configService.getOrThrow<number>('SMTP_PORT'),
+      secure: false,
       auth: {
-        user: this.configService.get<string>('SMTP_USER'),
-        pass: this.configService.get<string>('SMTP_PASSWORD'),
+        user: this.configService.getOrThrow<string>('SMTP_USER'),
+        pass: this.configService.getOrThrow<string>('SMTP_PASSWORD'),
+      },
+      tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false,
       },
     });
+    this.transporter.verify();
   }
   async sendMail(
     to: string,
@@ -25,7 +30,7 @@ export class MailService {
   ): Promise<void> {
     try {
       await this.transporter.sendMail({
-        from: this.configService.get<string>('SMTP_USER'),
+        from: this.configService.getOrThrow<string>('SMTP_USER'),
         to,
         subject,
         text,
@@ -33,7 +38,6 @@ export class MailService {
       });
     } catch (error) {
       console.error(`Failed to send email to ${to}:`, error);
-      throw error;
     }
   }
 }
