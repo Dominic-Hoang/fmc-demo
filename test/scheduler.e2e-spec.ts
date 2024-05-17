@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
 import { AppModule } from '../src/app.module';
-import { DistributedLockService } from '../src/mail-scheduler/distributed-lock.service';
+import { DistributedLockService } from '../src/scheduler/distributed-lock.service';
 
 describe('MailSchedulerService', () => {
   let distributedLockService: DistributedLockService;
