@@ -5,46 +5,34 @@ import { Redis } from 'ioredis';
 export class DistributedLockService {
   constructor(private redis: Redis) {}
 
-  async acquireLock(
+  async acquireOrExtendLock(
     key: string,
     value: string,
     ttlSecs: number,
   ): Promise<'OK' | null> {
     try {
-      const result = await this.redis.call(
-        'SET',
+      const result = await this.redis.eval(
+        `
+          if redis.call("exists", KEYS[1]) == 0 then
+            redis.call("set", KEYS[1], ARGV[1], "EX", ARGV[2])
+            return "OK"
+          elseif redis.call("get", KEYS[1]) == ARGV[1] then
+            redis.call("expire", KEYS[1], ARGV[2])
+            return "OK"
+          else
+            return "FAILED"
+          end
+        `,
+        1,
         key,
         value,
-        'NX',
-        'EX',
         ttlSecs,
       );
       if (result === 'OK') return 'OK';
       else return null;
     } catch (err) {
-      console.error('Error acquiring lock:', err);
+      console.error('Error acquiring/extending lock:', err);
       return null;
-    }
-  }
-
-  async extendLock(
-    key: string,
-    value: string,
-    ttlSecs: number,
-  ): Promise<boolean> {
-    const script = `
-      if redis.call("get", KEYS[1]) == ARGV[1] then
-        return redis.call("expire", KEYS[1], ARGV[2])
-      else
-        return 0
-      end
-    `;
-    try {
-      const result = await this.redis.eval(script, 1, key, value, ttlSecs);
-      return result === 1;
-    } catch (err) {
-      console.error('Error extending lock TTL:', err);
-      return false;
     }
   }
 
