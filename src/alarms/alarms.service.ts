@@ -14,14 +14,15 @@ export class AlarmService {
 
     private readonly userService: UsersService,
 
-    @InjectRepository(RecipientEntity)
-    private readonly recipientRepository: Repository<RecipientEntity>,
-
     @InjectRepository(SubscriptionEntity)
     private readonly subscriptionRepository: Repository<SubscriptionEntity>,
 
     private readonly dataSource: DataSource,
   ) {}
+
+  async getAlarms(): Promise<AlarmEntity[]> {
+    return await this.alarmRepository.find();
+  }
 
   async getUserAlarms(userId: string): Promise<AlarmEntity[]> {
     return await this.alarmRepository.find({

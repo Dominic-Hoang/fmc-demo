@@ -22,5 +22,6 @@ import { AlarmService } from './alarms.service';
     AuthModule,
     ConfigModule,
   ],
+  exports: [AlarmService],
 })
 export class AlarmsModule {}
