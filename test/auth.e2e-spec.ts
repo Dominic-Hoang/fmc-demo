@@ -8,14 +8,7 @@ import { DataSource } from 'typeorm';
 describe('Authentication test', () => {
   let app: INestApplication;
 
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-
+  const deleleAllData = async () => {
     const datasource = app.get<DataSource>(DataSource);
     const entities = datasource.entityMetadatas;
 
@@ -25,9 +18,21 @@ describe('Authentication test', () => {
         `TRUNCATE TABLE "${entity.tableName}" RESTART IDENTITY CASCADE;`,
       );
     }
+  };
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+
+    await deleleAllData();
   });
 
   afterAll(async () => {
+    await deleleAllData();
     await app.close();
   });
 

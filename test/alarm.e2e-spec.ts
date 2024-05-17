@@ -23,10 +23,7 @@ describe('Alarm API', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    // Clear database data
     datasource = app.get<DataSource>(DataSource);
-    const userRepo = datasource.getRepository(UserEntity);
-    userRepo.delete({});
 
     // signUp 2 separate users
     await request(app.getHttpServer()).post('/auth/basic/signUp').send({
@@ -43,17 +40,9 @@ describe('Alarm API', () => {
   });
 
   afterAll(async () => {
+    const userRepo = datasource.getRepository(UserEntity);
+    await userRepo.delete({});
     await app.close();
-  });
-
-  beforeEach(async () => {
-    // delete all alarm data
-    const alarmRepo = datasource.getRepository(AlarmEntity);
-    const subscriptionRepo = datasource.getRepository(SubscriptionEntity);
-    const recipientRepo = datasource.getRepository(RecipientEntity);
-    await alarmRepo.delete({});
-    await subscriptionRepo.delete({});
-    await recipientRepo.delete({});
   });
 
   beforeEach(async () => {
@@ -73,6 +62,16 @@ describe('Alarm API', () => {
         password: 'somedummysecret',
       });
     otherUserToken = signInResponse2.body['access_token'] ?? fail();
+  });
+
+  afterEach(async () => {
+    // delete all alarm data after each tests
+    const alarmRepo = datasource.getRepository(AlarmEntity);
+    const subscriptionRepo = datasource.getRepository(SubscriptionEntity);
+    const recipientRepo = datasource.getRepository(RecipientEntity);
+    await alarmRepo.delete({});
+    await subscriptionRepo.delete({});
+    await recipientRepo.delete({});
   });
 
   it('Anonymous user have no right', async () => {
