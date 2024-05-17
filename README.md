@@ -10,6 +10,7 @@ Before running the app, ensure to update the environment variables in the `.env`
 - `GOOGLE_OAUTH2_CLIENT_ID`: Replace with the client ID registered on the Google API console.
 - `GOOGLE_OAUTH2_CLIENT_SECRET`: Replace with the client secret associated with the client ID.
 - `GOOGLE_OAUTH2_REDIRECT_URL`: Replace with the registered redirect URL of the app.
+- `JWT_SECRET`: Replace with a random confidential string, with a minimum length of 20 characters, used for signing access tokens and for internal verification of JWTs.
 
 Then run:
 
