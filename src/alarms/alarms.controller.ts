@@ -74,7 +74,7 @@ export class AlarmController {
     @Body() createAlarmDto: CreateAlarmDto,
   ): Promise<AlarmDto> {
     try {
-      const entity = await this.alarmService.createAlarm(
+      const entity = await this.alarmService.createUserAlarm(
         userId,
         createAlarmDto.cron,
         createAlarmDto.subject,
@@ -98,7 +98,7 @@ export class AlarmController {
     @Param('alarmId') alarmId: string,
   ) {
     try {
-      return await this.alarmService.getAlarmById(userId, alarmId);
+      return await this.alarmService.getUserAlarmById(userId, alarmId);
     } catch (error) {
       throw new NotFoundException();
     }
@@ -112,7 +112,7 @@ export class AlarmController {
     @Body() updateAlarmDto: UpdateAlarmDto,
   ): Promise<AlarmDto> {
     try {
-      const entity = await this.alarmService.updateAlarm(
+      const entity = await this.alarmService.updateUserAlarm(
         userId,
         alarmId,
         updateAlarmDto.cron,
@@ -137,7 +137,7 @@ export class AlarmController {
     @Param('alarmId') alarmId: string,
   ): Promise<void> {
     try {
-      await this.alarmService.deleteAlarm(userId, alarmId);
+      await this.alarmService.deleteUserAlarm(userId, alarmId);
     } catch (error) {
       throw new NotFoundException();
     }
@@ -151,7 +151,7 @@ export class AlarmController {
   ): Promise<RecipientDto[]> {
     try {
       return (
-        await this.alarmService.listRecipientsOfAlarm(userId, alarmId)
+        await this.alarmService.listRecipientsOfUserAlarm(userId, alarmId)
       ).map((recipient) => {
         const dto = new RecipientDto();
         dto.id = recipient.id;
@@ -171,7 +171,7 @@ export class AlarmController {
     @Body() addRecipientDto: CreateRecipientDto,
   ): Promise<RecipientDto> {
     try {
-      const recipient = await this.alarmService.addRecipientToAlarm(
+      const recipient = await this.alarmService.addRecipientToUserAlarm(
         userId,
         alarmId,
         addRecipientDto.emailAddress,

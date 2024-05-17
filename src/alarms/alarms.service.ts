@@ -24,13 +24,32 @@ export class AlarmService {
     return await this.alarmRepository.find();
   }
 
+  async getAlarmById(alarmId: string): Promise<AlarmEntity> {
+    const alarm = await this.alarmRepository
+      .createQueryBuilder('alarm')
+      .leftJoinAndSelect(
+        'alarm.subscriptions',
+        'subscription',
+        'subscription.active = :active',
+        { active: true },
+      )
+      .leftJoinAndSelect('subscription.recipient', 'recipient')
+      .where('alarm.id = :alarmId', { alarmId })
+      .getOne();
+    if (!alarm) throw new Error('Alarm not found');
+    return alarm;
+  }
+
   async getUserAlarms(userId: string): Promise<AlarmEntity[]> {
     return await this.alarmRepository.find({
       where: { user: { id: userId } },
     });
   }
 
-  async getAlarmById(userId: string, alarmId: string): Promise<AlarmEntity> {
+  async getUserAlarmById(
+    userId: string,
+    alarmId: string,
+  ): Promise<AlarmEntity> {
     const alarm = await this.alarmRepository.findOne({
       where: { id: alarmId, user: { id: userId } },
     });
@@ -40,7 +59,7 @@ export class AlarmService {
     return alarm;
   }
 
-  async createAlarm(
+  async createUserAlarm(
     userId: string,
     cron: string,
     subject: string,
@@ -52,7 +71,7 @@ export class AlarmService {
     return await this.alarmRepository.save(alarm);
   }
 
-  async updateAlarm(
+  async updateUserAlarm(
     userId: string,
     alarmId: string,
     cron?: string,
@@ -71,7 +90,7 @@ export class AlarmService {
     return await this.alarmRepository.save(alarm);
   }
 
-  async deleteAlarm(userId: string, alarmId: string): Promise<void> {
+  async deleteUserAlarm(userId: string, alarmId: string): Promise<void> {
     const alarm = await this.alarmRepository.findOne({
       where: { id: alarmId, user: { id: userId } },
     });
@@ -81,7 +100,7 @@ export class AlarmService {
     await this.alarmRepository.remove(alarm);
   }
 
-  async addRecipientToAlarm(
+  async addRecipientToUserAlarm(
     userId: string,
     alarmId: string,
     emailAddress: string,
@@ -128,7 +147,7 @@ export class AlarmService {
     }
   }
 
-  async listRecipientsOfAlarm(
+  async listRecipientsOfUserAlarm(
     userId: string,
     alarmId: string,
   ): Promise<RecipientEntity[]> {
