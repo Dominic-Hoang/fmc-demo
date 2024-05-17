@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AlarmsModule } from './alarms/alarms.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -19,6 +20,12 @@ import { AlarmsModule } from './alarms/alarms.module';
         GOOGLE_OAUTH2_CLIENT_SECRET: Joi.string().required(),
         GOOGLE_OAUTH2_REDIRECT_URL: Joi.string().uri().required(),
         JWT_SECRET: Joi.string().min(20).required(),
+        SMTP_HOST: Joi.string().hostname().required(),
+        SMTP_PORT: Joi.number().port().required(),
+        SMTP_USER: Joi.string().required(),
+        SMTP_PASSWORD: Joi.string().required(),
+        REDIS_HOST: Joi.string().hostname().required(),
+        REDIS_PORT: Joi.number().port().required(),
       }),
       validationOptions: { abortEarly: true },
     }),
@@ -37,6 +44,16 @@ import { AlarmsModule } from './alarms/alarms.module';
         synchronize: true,
         autoLoadEntities: true,
         logging: false,
+      }),
+    }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.getOrThrow<string>('REDIS_HOST'),
+          port: configService.getOrThrow<number>('REDIS_PORT'),
+        },
       }),
     }),
     AlarmsModule,
