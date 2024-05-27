@@ -74,40 +74,15 @@ describe('Alarm API', () => {
     await userRepo.delete({});
   });
 
-  it('Anonymous user have no right', async () => {
-    const listAlarmResponse = await request(app.getHttpServer()).get(`/alarms`);
-    expect(listAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
-
-    const createAlarmResponse = await request(app.getHttpServer()).post(
-      `/alarms`,
-    );
-    expect(createAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
-
-    const getAlarmResponse = await request(app.getHttpServer()).get(
-      `/alarms/1`,
-    );
-    expect(getAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
-
-    const updateAlarmResponse = await request(app.getHttpServer()).patch(
-      `/alarms/1`,
-    );
-    expect(updateAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
-
-    const deleteAlarmResponse = await request(app.getHttpServer()).delete(
-      `/alarms/1`,
-    );
-    expect(deleteAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
-  });
-
   describe('User logged in', () => {
     let dummyAlarm1Id: string;
     const dummyAlarm1 = {
-      cron: '* * * * *',
+      cron: '*/10 * * * *',
       subject: 'Hello friends',
       message: 'Its me, Dominic',
     };
     const dummyAlarm2 = {
-      cron: '* * * * * *',
+      cron: '*/20 * * * *',
       subject: 'Global Fashion',
       message: 'The leading fashion and lifestyle destination',
     };
@@ -131,6 +106,32 @@ describe('Alarm API', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send(dummyAlarm2);
       expect(createAlarmResponse2.statusCode).toEqual(HttpStatus.CREATED);
+    });
+    it('Anonymous user have no right', async () => {
+      const listAlarmResponse = await request(app.getHttpServer()).get(
+        `/alarms`,
+      );
+      expect(listAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+      const createAlarmResponse = await request(app.getHttpServer()).post(
+        `/alarms`,
+      );
+      expect(createAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+      const getAlarmResponse = await request(app.getHttpServer()).get(
+        `/alarms/1`,
+      );
+      expect(getAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+      const updateAlarmResponse = await request(app.getHttpServer()).patch(
+        `/alarms/1`,
+      );
+      expect(updateAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
+
+      const deleteAlarmResponse = await request(app.getHttpServer()).delete(
+        `/alarms/1`,
+      );
+      expect(deleteAlarmResponse.statusCode).toEqual(HttpStatus.UNAUTHORIZED);
     });
 
     it('Create dummy alarms with incorrect cron should fail', async () => {
