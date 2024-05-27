@@ -24,7 +24,13 @@ describe('Alarm API', () => {
     await app.init();
 
     datasource = app.get<DataSource>(DataSource);
+  });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
+  beforeEach(async () => {
     // signUp 2 separate users
     await request(app.getHttpServer()).post('/auth/basic/signUp').send({
       name: 'johnathan',
@@ -37,15 +43,7 @@ describe('Alarm API', () => {
       password: 'somedummysecret',
       displayName: 'Maria',
     });
-  });
 
-  afterAll(async () => {
-    const userRepo = datasource.getRepository(UserEntity);
-    await userRepo.delete({});
-    await app.close();
-  });
-
-  beforeEach(async () => {
     // signIn 2 users
     const signInResponse1 = await request(app.getHttpServer())
       .post('/auth/basic/signIn')
@@ -69,9 +67,11 @@ describe('Alarm API', () => {
     const alarmRepo = datasource.getRepository(AlarmEntity);
     const subscriptionRepo = datasource.getRepository(SubscriptionEntity);
     const recipientRepo = datasource.getRepository(RecipientEntity);
+    const userRepo = datasource.getRepository(UserEntity);
     await alarmRepo.delete({});
     await subscriptionRepo.delete({});
     await recipientRepo.delete({});
+    await userRepo.delete({});
   });
 
   it('Anonymous user have no right', async () => {
@@ -107,9 +107,14 @@ describe('Alarm API', () => {
       message: 'Its me, Dominic',
     };
     const dummyAlarm2 = {
-      cron: '* * * * *',
+      cron: '* * * * * *',
       subject: 'Global Fashion',
       message: 'The leading fashion and lifestyle destination',
+    };
+    const badAlarm = {
+      cron: '? a * * *',
+      subject: 'Diamond status',
+      message: 'These 10 Hip Hop albums sold over 10 million units',
     };
 
     beforeEach(async () => {
@@ -126,6 +131,14 @@ describe('Alarm API', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send(dummyAlarm2);
       expect(createAlarmResponse2.statusCode).toEqual(HttpStatus.CREATED);
+    });
+
+    it('Create dummy alarms with incorrect cron should fail', async () => {
+      const createAlarmResponse = await request(app.getHttpServer())
+        .post('/alarms')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(badAlarm);
+      expect(createAlarmResponse.statusCode).toEqual(HttpStatus.BAD_REQUEST);
     });
 
     it('List dummy alarms successfully', async () => {
@@ -221,6 +234,9 @@ describe('Alarm API', () => {
       const recipient2 = {
         emailAddress: 'red.bull@outlook.com',
       };
+      const badRecipient = {
+        emailAddress: 'bad.email',
+      };
 
       beforeEach(async () => {
         const createRecipient1Response = await request(app.getHttpServer())
@@ -275,6 +291,16 @@ describe('Alarm API', () => {
         );
         expect(listRecipients.sort()).toEqual(
           [recipient1.emailAddress, recipient2.emailAddress].sort(),
+        );
+      });
+
+      it('Add wrong email format should fail', async () => {
+        const createRecipientResponse = await request(app.getHttpServer())
+          .post(`/alarms/${dummyAlarm1Id}/recipients`)
+          .send(badRecipient)
+          .set('Authorization', `Bearer ${userToken}`);
+        expect(createRecipientResponse.statusCode).toEqual(
+          HttpStatus.BAD_REQUEST,
         );
       });
 

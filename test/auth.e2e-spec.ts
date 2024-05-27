@@ -99,6 +99,40 @@ describe('Authentication test', () => {
     );
   });
 
+  it('Create user with name containing @ should fail', async () => {
+    const signUpResponse = await request(app.getHttpServer())
+      .post('/auth/basic/signUp')
+      .send({
+        name: 'domhoang3@gmail.com',
+        password: 'somedummysecret',
+        displayName: 'Dominic Hoang',
+      });
+
+    expect(signUpResponse.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+  });
+
+  it('Create user with short password should fail', async () => {
+    const signUpResponse = await request(app.getHttpServer())
+      .post('/auth/basic/signUp')
+      .send({
+        name: 'domhoang4',
+        password: 'secret',
+        displayName: 'Dominic Hoang',
+      });
+    expect(signUpResponse.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+  });
+
+  it('Create user with short name should fail', async () => {
+    const signUpResponse = await request(app.getHttpServer())
+      .post('/auth/basic/signUp')
+      .send({
+        name: 'dom',
+        password: 'somedummysecret',
+        displayName: 'Dominic Hoang',
+      });
+    expect(signUpResponse.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+  });
+
   it('Create 2 users with same name should fail', async () => {
     const firstSignUpResponse = await request(app.getHttpServer())
       .post('/auth/basic/signUp')
