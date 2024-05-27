@@ -23,6 +23,11 @@ import {
   UpdateAlarmDto,
 } from './alarms.dto';
 import { AlarmService } from './alarms.service';
+import {
+  CreateAlarmDtoValidationPipe,
+  RecipientDtoValidationPipe,
+  UpdateAlarmDtoValidationPipe,
+} from './alarms.pipe';
 
 @ApiTags('Alarm management')
 @ApiBearerAuth()
@@ -71,7 +76,7 @@ export class AlarmController {
   @UseGuards(AuthGuard)
   async createAlarm(
     @UserId() userId: string,
-    @Body() createAlarmDto: CreateAlarmDto,
+    @Body(CreateAlarmDtoValidationPipe) createAlarmDto: CreateAlarmDto,
   ): Promise<AlarmDto> {
     try {
       const entity = await this.alarmService.createUserAlarm(
@@ -109,7 +114,7 @@ export class AlarmController {
   async updateAlarm(
     @UserId() userId: string,
     @Param('alarmId') alarmId: string,
-    @Body() updateAlarmDto: UpdateAlarmDto,
+    @Body(UpdateAlarmDtoValidationPipe) updateAlarmDto: UpdateAlarmDto,
   ): Promise<AlarmDto> {
     try {
       const entity = await this.alarmService.updateUserAlarm(
@@ -168,7 +173,7 @@ export class AlarmController {
   async addRecipientToAlarm(
     @UserId() userId: string,
     @Param('alarmId') alarmId: string,
-    @Body() addRecipientDto: CreateRecipientDto,
+    @Body(RecipientDtoValidationPipe) addRecipientDto: CreateRecipientDto,
   ): Promise<RecipientDto> {
     try {
       const recipient = await this.alarmService.addRecipientToUserAlarm(

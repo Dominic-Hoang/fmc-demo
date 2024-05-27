@@ -22,6 +22,10 @@ import {
   CredentialNotValidError,
   UserAlreadyExistError,
 } from './auth.service';
+import {
+  UserCreateDtoValidationPipe,
+  UserSignInDtoValidationPipe,
+} from './auth.pipe';
 
 const GOOGLE_OAUTH2_SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email',
@@ -63,7 +67,9 @@ export class AuthController {
 
   @Post('basic/signUp')
   @HttpCode(HttpStatus.CREATED)
-  async basicAuthSignUp(@Body() userCreateDto: UserCreateDto) {
+  async basicAuthSignUp(
+    @Body(UserCreateDtoValidationPipe) userCreateDto: UserCreateDto,
+  ) {
     try {
       const accessToken = await this.authService.basicSignUp(
         userCreateDto.name,
@@ -82,7 +88,9 @@ export class AuthController {
 
   @Post('basic/signIn')
   @HttpCode(HttpStatus.OK)
-  async basicAuthSignIn(@Body() signInDto: UserSignInDto) {
+  async basicAuthSignIn(
+    @Body(UserSignInDtoValidationPipe) signInDto: UserSignInDto,
+  ) {
     try {
       const accessToken = await this.authService.basicSignIn(
         signInDto.name,
