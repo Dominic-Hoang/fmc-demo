@@ -1,13 +1,11 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { AlarmsModule } from './alarms/alarms.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
-import { SchedulerModule } from './scheduler/scheduler.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -60,9 +58,7 @@ import { UsersModule } from './users/users.module';
       }),
     }),
     AlarmsModule,
-    SchedulerModule,
     MailModule,
-    ScheduleModule.forRoot(),
   ],
 })
 export class AppModule {}

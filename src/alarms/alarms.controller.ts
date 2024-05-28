@@ -14,6 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { SchedulerService } from 'src/scheduler/scheduler.service';
 import { AuthGuard, UserId } from '../auth/auth.guard';
 import {
   AlarmDto,
@@ -22,18 +23,21 @@ import {
   RecipientDto,
   UpdateAlarmDto,
 } from './alarms.dto';
-import { AlarmService } from './alarms.service';
 import {
   CreateAlarmDtoValidationPipe,
   RecipientDtoValidationPipe,
   UpdateAlarmDtoValidationPipe,
 } from './alarms.pipe';
+import { AlarmService } from './alarms.service';
 
 @ApiTags('Alarm management')
 @ApiBearerAuth()
 @Controller('alarms')
 export class AlarmController {
-  constructor(private readonly alarmService: AlarmService) {}
+  constructor(
+    private readonly alarmService: AlarmService,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
   @Get('@unsubscribe')
   async deactivateSubscription(
@@ -85,6 +89,7 @@ export class AlarmController {
         createAlarmDto.subject,
         createAlarmDto.message,
       );
+      await this.schedulerService.addCronJob(entity.id, entity.cron);
       const dto = new AlarmDto();
       dto.id = entity.id;
       dto.cron = entity.cron;
@@ -117,6 +122,14 @@ export class AlarmController {
     @Body(UpdateAlarmDtoValidationPipe) updateAlarmDto: UpdateAlarmDto,
   ): Promise<AlarmDto> {
     try {
+      const recentEntity = await this.alarmService.getUserAlarmById(
+        userId,
+        alarmId,
+      );
+      await this.schedulerService.removeCronJob(
+        recentEntity.id,
+        recentEntity.cron,
+      );
       const entity = await this.alarmService.updateUserAlarm(
         userId,
         alarmId,
@@ -124,6 +137,7 @@ export class AlarmController {
         updateAlarmDto.subject,
         updateAlarmDto.message,
       );
+      await this.schedulerService.addCronJob(entity.id, entity.cron);
       const dto = new AlarmDto();
       dto.id = entity.id;
       dto.cron = entity.cron;
@@ -142,7 +156,9 @@ export class AlarmController {
     @Param('alarmId') alarmId: string,
   ): Promise<void> {
     try {
+      const entity = await this.alarmService.getUserAlarmById(userId, alarmId);
       await this.alarmService.deleteUserAlarm(userId, alarmId);
+      await this.schedulerService.removeCronJob(entity.id, entity.cron);
     } catch (error) {
       throw new NotFoundException();
     }

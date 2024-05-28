@@ -1,31 +1,16 @@
-import { Module } from '@nestjs/common';
-import { SchedulerService } from './scheduler.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { DistributedLockService } from './distributed-lock.service';
-import { Redis } from 'ioredis';
 import { BullModule } from '@nestjs/bull';
-import { AlarmsModule } from '../alarms/alarms.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { SchedulerService } from './scheduler.service';
 
 @Module({
-  providers: [
-    SchedulerService,
-    DistributedLockService,
-    {
-      provide: Redis,
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) =>
-        new Redis({
-          host: configService.getOrThrow<string>('REDIS_HOST'),
-          port: configService.getOrThrow<number>('REDIS_PORT'),
-        }),
-    },
-  ],
+  providers: [SchedulerService],
   imports: [
     ConfigModule,
     BullModule.registerQueue({
       name: 'sendingEmails',
     }),
-    AlarmsModule,
   ],
+  exports: [SchedulerService],
 })
 export class SchedulerModule {}

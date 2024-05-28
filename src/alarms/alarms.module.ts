@@ -8,6 +8,7 @@ import { AlarmController } from './alarms.controller';
 import { AuthModule } from '../auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { AlarmService } from './alarms.service';
+import { SchedulerModule } from 'src/scheduler/scheduler.module';
 
 @Module({
   controllers: [AlarmController],
@@ -21,6 +22,7 @@ import { AlarmService } from './alarms.service';
     UsersModule,
     AuthModule,
     ConfigModule,
+    SchedulerModule,
   ],
   exports: [AlarmService],
 })
